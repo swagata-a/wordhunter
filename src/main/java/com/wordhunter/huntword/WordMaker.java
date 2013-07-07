@@ -1,6 +1,8 @@
 package com.wordhunter.huntword;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Random;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -17,15 +19,19 @@ public class WordMaker {
 	int vowelIndex = 0;
 	int count = 0;
 	static String finalWords = "";
-	String newString = "";
+	final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	public String generateRandomChars(int range) {
-		char chars[] = new char[9];
-		for (int noOfChars = 0; noOfChars < range; noOfChars++) {
-			chars[noOfChars] = (char) (Math.random() * ('Z' - 'A' + 1) + 'A');
+		int length = alphabet.length();
+		Random r = new Random();
+		StringBuilder randomCharsStr = new StringBuilder();
+		while (randomCharsStr.length() != range) {
+			String c = alphabet.charAt(r.nextInt(length)) + "";
+			if (!randomCharsStr.toString().contains(c)) {
+				randomCharsStr.append(c);
+			}
 		}
-		String randomChars = String.valueOf(chars);
-
+		String randomChars = randomCharsStr.toString();
 		if (countVowels(randomChars) < 2) {
 			randomChars = insertVowels(count, vowelIndex, randomChars);
 		}
@@ -49,26 +55,48 @@ public class WordMaker {
 	}
 
 	private String insertVowels(int vowelsCount, int index,
-			String inCompleteString) {
-		newString = "";
-		if (vowelsCount == 0) // when no vowel present
-			newString = "AE" + inCompleteString.substring(2);
-		if (vowelsCount == 1) {
-			if (index == 1)
-				newString = inCompleteString.substring(0, 8) + "E";
-			if (index == 9)
-				newString = "E" + inCompleteString.substring(1);
-			else
-				newString = "E" + inCompleteString.substring(1);
+			String incompleteString) {
+		String newString = "";
+		if (vowelsCount == 0) { // when no vowel present
+			newString = "AE" + incompleteString.substring(2);
+		} else if (vowelsCount == 1) {
+			if (!isVowelPresent("E", incompleteString)) {
+				newString = getFinalString(index, incompleteString, "E");
+			} else if (!isVowelPresent("A", incompleteString)) {
+				newString = getFinalString(index, incompleteString, "A");
+			} else if (!isVowelPresent("I", incompleteString)) {
+				newString = getFinalString(index, incompleteString, "I");
+			}
 		}
 		return newString;
+	}
+
+	private String getFinalString(int index, String originalString,
+			String replacement) {
+		StringBuilder newStringBuilder = new StringBuilder();
+		if (index == 1) {
+			newStringBuilder.append(originalString.substring(0, 8)).append(
+					replacement);
+
+		}
+		if (index == 9) {
+			newStringBuilder.append(replacement).append(
+					originalString.substring(1));
+		} else {
+			newStringBuilder.append(replacement).append(
+					originalString.substring(1));
+		}
+		return newStringBuilder.toString();
+	}
+
+	private boolean isVowelPresent(String vowel, String text) {
+		return (text.contains(vowel));
 	}
 
 	public String getFinalWords(String alphabets) {
 		String REST_ENDPOINT = "http://www.anagramica.com/";
 		String URI_INFO_PATH = "all";
 		String endpoint = REST_ENDPOINT + URI_INFO_PATH + "/" + alphabets;
-		System.out.println(alphabets);
 		JsonParser parser = new JsonParser();
 		JSONObject json = parser.getJSONFromUrl(endpoint);
 		JSONArray words = null;
@@ -80,14 +108,14 @@ public class WordMaker {
 				}
 			}
 			finalWords = finalWords.substring(0, finalWords.length() - 1);
-			System.out.println(finalWords);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 		return finalWords;
 	}
 
-	public void postData(String words, String key) throws IOException, URISyntaxException {
+	public void postData(String words, String key) throws IOException,
+			URISyntaxException {
 		HttpClient client = new DefaultHttpClient();
 		HttpPost post = new HttpPost(
 				"https://api.usergrid.com/swagata/wordhunter/worddb?access_token=YWMt1wMP0ObZEeKnyaNe-D2j8AAAAT_cKHVNQ_178tJL1Q32qa01VhQzEy7YSu8");
@@ -108,7 +136,8 @@ public class WordMaker {
 	}
 
 	public static void main(String[] args) throws Exception {
-//Check whether the key is already available. If available, then dont store
+		// Check whether the key is already available. If available, then dont
+		// store
 		WordMaker randChar = new WordMaker();
 		String randomSeq = randChar.generateRandomChars(9);
 		randChar.getFinalWords(randomSeq);
