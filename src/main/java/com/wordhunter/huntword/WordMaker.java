@@ -18,7 +18,7 @@ import com.wordhunter.huntword.json.JsonParser;
 public class WordMaker {
 	int vowelIndex = 0;
 	int count = 0;
-	static String finalWords = "";
+	
 	final String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	public String generateRandomChars(int range) {
@@ -94,6 +94,7 @@ public class WordMaker {
 	}
 
 	public String getFinalWords(String alphabets) {
+		String finalWords = "";
 		String REST_ENDPOINT = "http://www.anagramica.com/";
 		String URI_INFO_PATH = "all";
 		String endpoint = REST_ENDPOINT + URI_INFO_PATH + "/" + alphabets;
@@ -107,7 +108,7 @@ public class WordMaker {
 					finalWords = finalWords + words.getString(i) + ",";
 				}
 			}
-			finalWords = finalWords.substring(0, finalWords.length() - 1);
+//			finalWords = finalWords.substring(0, finalWords.length() - 1);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -139,9 +140,17 @@ public class WordMaker {
 		// Check whether the key is already available. If available, then dont
 		// store
 		WordMaker randChar = new WordMaker();
-		String randomSeq = randChar.generateRandomChars(9);
-		randChar.getFinalWords(randomSeq);
-		randChar.postData(finalWords, randomSeq);
+		int count = 0;
+		while(true){
+			String randomSeq = randChar.generateRandomChars(9);
+			System.out.println(randomSeq);
+			String words = randChar.getFinalWords(randomSeq);
+			if (words.split(",").length > 10) {
+				randChar.postData(words, randomSeq);
+				System.out.println(count);
+				count++;
+			}
+		}
 
 	}
 }
